@@ -36,22 +36,20 @@ pipeline {
 
         stage('Docker Build (on Jenkins host)') {
             steps {
-                script {
-                    sh """
-                        docker build -t ${DOCKERHUB_USER}/${IMAGE_NAME}:latest .
-                        docker tag ${DOCKERHUB_USER}/${IMAGE_NAME}:latest ${DOCKERHUB_USER}/${IMAGE_NAME}:5
-                    """
-                }
+                sh """
+                    docker build -t ${DOCKERHUB_USER}/${IMAGE_NAME}:latest .
+                    docker tag ${DOCKERHUB_USER}/${IMAGE_NAME}:latest ${DOCKERHUB_USER}/${IMAGE_NAME}:5
+                """
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-                withCredentials([string(credentialsId: DOCKERHUB_CRED_ID, variable: 'DH_PASS')]) {
+                withCredentials([usernamePassword(credentialsId: DOCKERHUB_CRED_ID, usernameVariable: 'DH_USER', passwordVariable: 'DH_PASS')]) {
                     sh """
-                        echo "$DH_PASS" | docker login -u ${DOCKERHUB_USER} --password-stdin
-                        docker push ${DOCKERHUB_USER}/${IMAGE_NAME}:latest
-                        docker push ${DOCKERHUB_USER}/${IMAGE_NAME}:5
+                        echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
+                        docker push ${DH_USER}/${IMAGE_NAME}:latest
+                        docker push ${DH_USER}/${IMAGE_NAME}:5
                     """
                 }
             }
